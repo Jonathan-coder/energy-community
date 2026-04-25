@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="at.fhtw.energygui.HelloController">
+  <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+
+  <Label text="Energy Community Monitor" style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+
+  <!-- Current Data -->
+  <TitledPane text="Current Hour" collapsible="false">
+    <VBox spacing="5">
+      <Button text="Refresh Current" onAction="#loadCurrent"/>
+      <Label fx:id="labelCurrent" text="Press Refresh to load data"/>
+    </VBox>
+  </TitledPane>
+
+  <!-- Historical Data -->
+  <TitledPane text="Historical Data" collapsible="false">
+    <VBox spacing="5">
+      <HBox spacing="10">
+        <Label text="Start:"/>
+        <TextField fx:id="fieldStart" promptText="2025-01-10T00:00:00"/>
+        <Label text="End:"/>
+        <TextField fx:id="fieldEnd" promptText="2025-01-10T23:59:59"/>
+        <Button text="Load Historical" onAction="#loadHistorical"/>
+      </HBox>
+      <TableView fx:id="tableHistorical">
+        <columns>
+          <TableColumn fx:id="colHour" text="Hour" prefWidth="180"/>
+          <TableColumn fx:id="colProduced" text="Produced (kWh)" prefWidth="140"/>
+          <TableColumn fx:id="colUsed" text="Used (kWh)" prefWidth="120"/>
+          <TableColumn fx:id="colGrid" text="Grid (kWh)" prefWidth="120"/>
+        </columns>
+      </TableView>
+    </VBox>
+  </TitledPane>
+</VBox>
