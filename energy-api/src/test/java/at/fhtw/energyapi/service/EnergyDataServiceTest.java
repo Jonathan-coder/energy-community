@@ -1,36 +1,65 @@
 package at.fhtw.energyapi.service;
 
+import at.fhtw.energypersistence.model.CurrentPercentageEntity;
+import at.fhtw.energypersistence.model.HourlyUsageEntity;
+import at.fhtw.energypersistence.repository.CurrentPercentageRepository;
+import at.fhtw.energypersistence.repository.HourlyUsageRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class EnergyDataServiceTest {
 
-    private final EnergyDataService service = new EnergyDataService();
+    @Mock
+    private HourlyUsageRepository hourlyUsageRepository;
+
+    @Mock
+    private CurrentPercentageRepository currentPercentageRepository;
+
+    @InjectMocks
+    private EnergyDataService service;
 
     @Test
-    void returnsCurrentPercentageForLatestHour() {
+    void returnsLatestCurrentPercentageFromRepository() {
+        when(currentPercentageRepository.findAll()).thenReturn(List.of(
+                new CurrentPercentageEntity("2025-01-10T09:00:00", 35.0, 10.0),
+                new CurrentPercentageEntity("2025-01-10T10:00:00", 55.0, 20.0)
+        ));
+
         var current = service.getCurrentPercentage();
 
-        assertEquals("2025-01-10T14:00:00", current.hour());
-        assertEquals(100.0, current.communityDepleted());
-        assertEquals(5.63, current.gridPortion());
+        assertEquals("2025-01-10T10:00:00", current.hour());
+        assertEquals(55.0, current.communityDepleted());
+        assertEquals(20.0, current.gridPortion());
     }
 
     @Test
-    void returnsHistoricalRangeDescendingByHour() {
+    void returnsHistoricalRowsForRequestedRange() {
+        when(hourlyUsageRepository.findAll()).thenReturn(List.of(
+                new HourlyUsageEntity("2025-01-10T09:00:00", 100.0, 80.0, 15.0),
+                new HourlyUsageEntity("2025-01-10T10:00:00", 120.0, 90.0, 12.0),
+                new HourlyUsageEntity("2025-01-10T11:00:00", 130.0, 95.0, 10.0)
+        ));
+
         var rows = service.getHistorical(
-                LocalDateTime.parse("2025-01-10T12:00:00"),
-                LocalDateTime.parse("2025-01-10T14:00:00")
+                LocalDateTime.parse("2025-01-10T09:00:00"),
+                LocalDateTime.parse("2025-01-10T10:00:00")
         );
 
-        assertEquals(3, rows.size());
-        assertEquals("2025-01-10T14:00:00", rows.get(0).hour());
-        assertEquals("2025-01-10T12:00:00", rows.get(2).hour());
+        assertEquals(2, rows.size());
+        assertEquals("2025-01-10T10:00:00", rows.get(0).hour());
+        assertEquals("2025-01-10T09:00:00", rows.get(1).hour());
     }
 
     @Test
