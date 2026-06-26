@@ -11,7 +11,13 @@
 
     <modules>
         <module>energy-contract</module>
+        <module>energy-common</module>
+        <module>energy-persistence</module>
         <module>energy-api</module>
+        <module>energy-producer</module>
+        <module>energy-user</module>
+        <module>energy-usage-service</module>
+        <module>energy-percentage-service</module>
         <module>energy-gui</module>
     </modules>
 
