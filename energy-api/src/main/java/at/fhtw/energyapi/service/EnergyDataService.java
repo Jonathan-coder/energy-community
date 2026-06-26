@@ -11,8 +11,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class EnergyDataService {
@@ -28,10 +29,10 @@ public class EnergyDataService {
     }
 
     public CurrentPercentage getCurrentPercentage() {
-        var latestEntry = currentPercentageRepository.findAll().stream()
-                .reduce((first, second) -> second)
+        return currentPercentageRepository.findAll().stream()
+                .max(Comparator.comparing(entity -> entity.getHour()))
+                .map(entity -> new CurrentPercentage(entity.getHour(), entity.getCommunityDepleted(), entity.getGridPortion()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No percentage data available"));
-        return new CurrentPercentage(latestEntry.getHour(), latestEntry.getCommunityDepleted(), latestEntry.getGridPortion());
     }
 
     public List<HourlyUsage> getHistorical(LocalDateTime start, LocalDateTime end) {
@@ -41,12 +42,16 @@ public class EnergyDataService {
 
         return hourlyUsageRepository.findAll().stream()
                 .filter(entity -> {
-                    var value = LocalDateTime.parse(entity.getHour(), FORMATTER);
-                    return !value.isBefore(start) && !value.isAfter(end);
+                    try {
+                        var value = LocalDateTime.parse(entity.getHour(), FORMATTER);
+                        return !value.isBefore(start) && !value.isAfter(end);
+                    } catch (DateTimeParseException exception) {
+                        return false;
+                    }
                 })
-                .sorted((left, right) -> right.getHour().compareTo(left.getHour()))
+                .sorted(Comparator.comparing(HourlyUsageEntity::getHour).reversed())
                 .map(this::toHourlyUsage)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private HourlyUsage toHourlyUsage(HourlyUsageEntity entity) {

@@ -3,31 +3,30 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox spacing="10" xmlns:fx="http://javafx.com/fxml"
+<VBox spacing="12" xmlns:fx="http://javafx.com/fxml"
       fx:controller="at.fhtw.energygui.HelloController">
   <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
 
   <Label text="Energy Community Monitor" style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+  <Label fx:id="labelStatus" text="Loading data..." wrapText="true"/>
 
-  <!-- Current Data -->
-  <TitledPane text="Current Hour" collapsible="false">
-    <VBox spacing="5">
+  <TitledPane text="Current Community Status" collapsible="false">
+    <VBox spacing="8">
       <Button text="Refresh Current" onAction="#loadCurrent"/>
-      <Label fx:id="labelCurrent" text="Press Refresh to load data"/>
+      <Label fx:id="labelCurrent" text="Press Refresh to load data" wrapText="true"/>
     </VBox>
   </TitledPane>
 
-  <!-- Historical Data -->
-  <TitledPane text="Historical Data" collapsible="false">
-    <VBox spacing="5">
-      <HBox spacing="10">
-        <Label text="Start:"/>
-        <TextField fx:id="fieldStart" promptText="2025-01-10T00:00:00"/>
-        <Label text="End:"/>
-        <TextField fx:id="fieldEnd" promptText="2025-01-10T23:59:59"/>
+  <TitledPane text="Historical Usage" collapsible="false">
+    <VBox spacing="8">
+      <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="From:"/>
+        <DatePicker fx:id="startDatePicker"/>
+        <Label text="To:"/>
+        <DatePicker fx:id="endDatePicker"/>
         <Button text="Load Historical" onAction="#loadHistorical"/>
       </HBox>
-      <TableView fx:id="tableHistorical">
+      <TableView fx:id="tableHistorical" prefHeight="260">
         <columns>
           <TableColumn fx:id="colHour" text="Hour" prefWidth="180"/>
           <TableColumn fx:id="colProduced" text="Produced (kWh)" prefWidth="140"/>
