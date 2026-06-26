@@ -1,7 +1,8 @@
-package at.fhtw.energyapi.model;
+package at.fhtw.energycontract;
 
 public record CurrentPercentage(
         String hour,
         double communityDepleted,
         double gridPortion
-) {}
+) {
+}
