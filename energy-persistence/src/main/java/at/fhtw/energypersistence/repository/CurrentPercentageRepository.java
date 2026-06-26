@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface CurrentPercentageRepository extends JpaRepository<CurrentPercentageEntity, Long> {
     Optional<CurrentPercentageEntity> findByHour(String hour);
+    Optional<CurrentPercentageEntity> findTopByOrderByHourDesc();
 }

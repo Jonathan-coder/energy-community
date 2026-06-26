@@ -14,7 +14,7 @@ public class CurrentPercentageEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "usage_hour", nullable = false, unique = true)
     private String hour;
 
     @Column(nullable = false)
@@ -42,5 +42,13 @@ public class CurrentPercentageEntity {
 
     public double getGridPortion() {
         return gridPortion;
+    }
+
+    public void setCommunityDepleted(double communityDepleted) {
+        this.communityDepleted = communityDepleted;
+    }
+
+    public void setGridPortion(double gridPortion) {
+        this.gridPortion = gridPortion;
     }
 }

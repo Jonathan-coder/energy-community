@@ -32,8 +32,7 @@ class EnergyDataServiceTest {
 
     @Test
     void returnsLatestCurrentPercentageFromRepository() {
-        when(currentPercentageRepository.findAll()).thenReturn(List.of(
-                new CurrentPercentageEntity("2025-01-10T09:00:00", 35.0, 10.0),
+        when(currentPercentageRepository.findTopByOrderByHourDesc()).thenReturn(java.util.Optional.of(
                 new CurrentPercentageEntity("2025-01-10T10:00:00", 55.0, 20.0)
         ));
 
@@ -46,10 +45,9 @@ class EnergyDataServiceTest {
 
     @Test
     void returnsHistoricalRowsForRequestedRange() {
-        when(hourlyUsageRepository.findAll()).thenReturn(List.of(
+        when(hourlyUsageRepository.findByHourBetweenOrderByHourDesc("2025-01-10T09:00:00", "2025-01-10T10:00:00")).thenReturn(List.of(
                 new HourlyUsageEntity("2025-01-10T09:00:00", 100.0, 80.0, 15.0),
-                new HourlyUsageEntity("2025-01-10T10:00:00", 120.0, 90.0, 12.0),
-                new HourlyUsageEntity("2025-01-10T11:00:00", 130.0, 95.0, 10.0)
+                new HourlyUsageEntity("2025-01-10T10:00:00", 120.0, 90.0, 12.0)
         ));
 
         var rows = service.getHistorical(

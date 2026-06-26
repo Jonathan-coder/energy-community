@@ -15,9 +15,9 @@ class EnergyCalculationServiceTest {
 
         assertEquals(10.0, usage.communityProduced());
         assertEquals(10.0, usage.communityUsed());
-        assertEquals(5.0, usage.gridUsed());
+        assertEquals(3.0, usage.gridUsed());
         assertEquals(100.0, percentage.communityDepleted());
-        assertEquals(33.33, percentage.gridPortion());
+        assertEquals(23.08, percentage.gridPortion());
     }
 
     @Test
@@ -26,7 +26,7 @@ class EnergyCalculationServiceTest {
         var percentage = service.calculatePercentage("2026-06-26T10:00:00", 0.0, 8.0, 1.0);
 
         assertEquals(0.0, usage.communityUsed());
-        assertEquals(9.0, usage.gridUsed());
+        assertEquals(1.0, usage.gridUsed());
         assertEquals(0.0, percentage.communityDepleted());
         assertEquals(100.0, percentage.gridPortion());
     }

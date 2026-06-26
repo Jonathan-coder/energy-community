@@ -14,7 +14,7 @@ public class HourlyUsageEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "usage_hour", nullable = false, unique = true)
     private String hour;
 
     @Column(nullable = false)

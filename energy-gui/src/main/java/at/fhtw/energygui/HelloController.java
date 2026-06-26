@@ -50,7 +50,7 @@ public class HelloController {
         endDatePicker.setValue(LocalDate.now());
 
         loadCurrent();
-        loadHistorical();
+        labelStatus.setText("Select a date range and press Load Historical.");
     }
 
     @FXML
@@ -80,11 +80,17 @@ public class HelloController {
     @FXML
     private void loadHistorical() {
         try {
+            if (startDatePicker.getValue() == null || endDatePicker.getValue() == null) {
+                throw new IllegalStateException("Please choose both start and end dates.");
+            }
             var start = startDatePicker.getValue().atStartOfDay();
             var end = endDatePicker.getValue().atTime(23, 59, 59);
             var url = API_BASE + "/historical?start=" + start.format(FORMATTER) + "&end=" + end.format(FORMATTER);
             var request = HttpRequest.newBuilder().uri(URI.create(url)).build();
             var response = http.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 404) {
+                throw new IllegalStateException("No historical data in the selected range.");
+            }
             if (response.statusCode() >= 400) {
                 throw new IllegalStateException(readError(response.body()));
             }

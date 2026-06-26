@@ -2,6 +2,7 @@ package at.fhtw.energyapi.service;
 
 import at.fhtw.energycontract.CurrentPercentage;
 import at.fhtw.energycontract.HourlyUsage;
+import at.fhtw.energypersistence.model.CurrentPercentageEntity;
 import at.fhtw.energypersistence.model.HourlyUsageEntity;
 import at.fhtw.energypersistence.repository.CurrentPercentageRepository;
 import at.fhtw.energypersistence.repository.HourlyUsageRepository;
@@ -11,8 +12,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -29,9 +28,8 @@ public class EnergyDataService {
     }
 
     public CurrentPercentage getCurrentPercentage() {
-        return currentPercentageRepository.findAll().stream()
-                .max(Comparator.comparing(entity -> entity.getHour()))
-                .map(entity -> new CurrentPercentage(entity.getHour(), entity.getCommunityDepleted(), entity.getGridPortion()))
+        return currentPercentageRepository.findTopByOrderByHourDesc()
+                .map((CurrentPercentageEntity entity) -> new CurrentPercentage(entity.getHour(), entity.getCommunityDepleted(), entity.getGridPortion()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No percentage data available"));
     }
 
@@ -40,16 +38,10 @@ public class EnergyDataService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "start must be before or equal to end");
         }
 
-        return hourlyUsageRepository.findAll().stream()
-                .filter(entity -> {
-                    try {
-                        var value = LocalDateTime.parse(entity.getHour(), FORMATTER);
-                        return !value.isBefore(start) && !value.isAfter(end);
-                    } catch (DateTimeParseException exception) {
-                        return false;
-                    }
-                })
-                .sorted(Comparator.comparing(HourlyUsageEntity::getHour).reversed())
+        String startHour = start.format(FORMATTER);
+        String endHour = end.format(FORMATTER);
+
+        return hourlyUsageRepository.findByHourBetweenOrderByHourDesc(startHour, endHour).stream()
                 .map(this::toHourlyUsage)
                 .toList();
     }

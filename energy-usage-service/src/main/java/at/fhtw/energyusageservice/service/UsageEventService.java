@@ -5,6 +5,7 @@ import at.fhtw.energycontract.EnergyMessageType;
 import at.fhtw.energycommon.EnergyCalculationService;
 import at.fhtw.energypersistence.model.HourlyUsageEntity;
 import at.fhtw.energypersistence.repository.HourlyUsageRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class UsageEventService {
     public UsageEventService(HourlyUsageRepository repository,
                              EnergyCalculationService calculationService,
                              RabbitTemplate rabbitTemplate,
-                             Queue updateQueue) {
+                             @Qualifier("updateQueue") Queue updateQueue) {
         this.repository = repository;
         this.calculationService = calculationService;
         this.rabbitTemplate = rabbitTemplate;
@@ -46,12 +47,14 @@ public class UsageEventService {
         if (message.type() == EnergyMessageType.PRODUCER) {
             communityProduced += message.kwh();
         } else if (message.type() == EnergyMessageType.USER) {
-            communityUsed += message.kwh();
+            double availableCommunity = Math.max(0.0, communityProduced - communityUsed);
+            double communityShare = Math.min(message.kwh(), availableCommunity);
+            double gridShare = Math.max(0.0, message.kwh() - communityShare);
+            communityUsed += communityShare;
+            gridUsed += gridShare;
         }
 
-        double effectiveCommunityUsed = Math.min(communityUsed, communityProduced);
-        double effectiveGridUsed = Math.max(0.0, communityUsed - effectiveCommunityUsed) + gridUsed;
-        var usage = calculationService.calculateUsage(hour, communityProduced, communityUsed, effectiveGridUsed);
+        var usage = calculationService.calculateUsage(hour, communityProduced, communityUsed, gridUsed);
 
         if (existing.isPresent()) {
             var entity = existing.get();

@@ -8,6 +8,8 @@ import at.fhtw.energypersistence.repository.CurrentPercentageRepository;
 import at.fhtw.energypersistence.repository.HourlyUsageRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class PercentageEventService {
     private final CurrentPercentageRepository currentPercentageRepository;
@@ -40,7 +42,15 @@ public class PercentageEventService {
                 hourlyUsage.get().getGridUsed()
         );
 
-        currentPercentageRepository.save(new CurrentPercentageEntity(percentage.hour(), percentage.communityDepleted(), percentage.gridPortion()));
+        Optional<CurrentPercentageEntity> existing = currentPercentageRepository.findByHour(hour);
+        if (existing.isPresent()) {
+            var entity = existing.get();
+            entity.setCommunityDepleted(percentage.communityDepleted());
+            entity.setGridPortion(percentage.gridPortion());
+            currentPercentageRepository.save(entity);
+        } else {
+            currentPercentageRepository.save(new CurrentPercentageEntity(percentage.hour(), percentage.communityDepleted(), percentage.gridPortion()));
+        }
     }
 
     private String normalizeHour(String datetime) {

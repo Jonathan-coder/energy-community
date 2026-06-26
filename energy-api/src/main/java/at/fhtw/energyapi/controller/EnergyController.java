@@ -30,10 +30,10 @@ public class EnergyController {
 
     @GetMapping("/historical")
     public List<HourlyUsage> getHistorical(
-            @RequestParam
+            @RequestParam("start")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             LocalDateTime start,
-            @RequestParam
+            @RequestParam("end")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             LocalDateTime end
     ) {

@@ -2,12 +2,14 @@ package at.fhtw.energycommon;
 
 import at.fhtw.energycontract.CurrentPercentage;
 import at.fhtw.energycontract.HourlyUsage;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Service
 public class EnergyCalculationService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
@@ -16,14 +18,11 @@ public class EnergyCalculationService {
         double safeCommunityUsed = Math.max(0.0, communityUsed);
         double safeGridUsed = Math.max(0.0, gridUsed);
 
-        double effectiveCommunityUsed = Math.min(safeCommunityUsed, safeCommunityProduced);
-        double effectiveGridUsed = Math.max(0.0, safeCommunityUsed - effectiveCommunityUsed) + safeGridUsed;
-
         return new HourlyUsage(
                 hour,
                 round3(safeCommunityProduced),
-                round3(effectiveCommunityUsed),
-                round3(effectiveGridUsed)
+                round3(Math.min(safeCommunityUsed, safeCommunityProduced)),
+                round3(safeGridUsed)
         );
     }
 
