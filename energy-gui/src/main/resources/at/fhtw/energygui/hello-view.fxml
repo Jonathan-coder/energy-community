@@ -28,7 +28,7 @@
       </HBox>
       <TableView fx:id="tableHistorical" prefHeight="260">
         <columns>
-          <TableColumn fx:id="colHour" text="Hour" prefWidth="180"/>
+          <TableColumn fx:id="colHour" text="Period" prefWidth="180"/>
           <TableColumn fx:id="colProduced" text="Produced (kWh)" prefWidth="140"/>
           <TableColumn fx:id="colUsed" text="Used (kWh)" prefWidth="120"/>
           <TableColumn fx:id="colGrid" text="Grid (kWh)" prefWidth="120"/>

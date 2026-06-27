@@ -1,21 +1,21 @@
 package at.fhtw.energygui;
 
 public class HourlyUsageRow {
-    private final String hour;
-    private final double communityProduced;
-    private final double communityUsed;
-    private final double gridUsed;
+    private final String period;
+    private final String communityProduced;
+    private final String communityUsed;
+    private final String gridUsed;
 
-    public HourlyUsageRow(String hour, double communityProduced,
-                          double communityUsed, double gridUsed) {
-        this.hour = hour;
+    public HourlyUsageRow(String period, String communityProduced,
+                          String communityUsed, String gridUsed) {
+        this.period = period;
         this.communityProduced = communityProduced;
         this.communityUsed = communityUsed;
         this.gridUsed = gridUsed;
     }
 
-    public String getHour() { return hour; }
-    public double getCommunityProduced() { return communityProduced; }
-    public double getCommunityUsed() { return communityUsed; }
-    public double getGridUsed() { return gridUsed; }
+    public String getPeriod() { return period; }
+    public String getCommunityProduced() { return communityProduced; }
+    public String getCommunityUsed() { return communityUsed; }
+    public String getGridUsed() { return gridUsed; }
 }

@@ -6,12 +6,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.Alert;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -20,6 +20,7 @@ import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.List;
 
 public class HelloController {
@@ -35,16 +36,16 @@ public class HelloController {
     @FXML private DatePicker endDatePicker;
     @FXML private TableView<HourlyUsageRow> tableHistorical;
     @FXML private TableColumn<HourlyUsageRow, String> colHour;
-    @FXML private TableColumn<HourlyUsageRow, Double> colProduced;
-    @FXML private TableColumn<HourlyUsageRow, Double> colUsed;
-    @FXML private TableColumn<HourlyUsageRow, Double> colGrid;
+    @FXML private TableColumn<HourlyUsageRow, String> colProduced;
+    @FXML private TableColumn<HourlyUsageRow, String> colUsed;
+    @FXML private TableColumn<HourlyUsageRow, String> colGrid;
 
     @FXML
     public void initialize() {
-        colHour.setCellValueFactory(new PropertyValueFactory<>("hour"));
-        colProduced.setCellValueFactory(new PropertyValueFactory<>("communityProduced"));
-        colUsed.setCellValueFactory(new PropertyValueFactory<>("communityUsed"));
-        colGrid.setCellValueFactory(new PropertyValueFactory<>("gridUsed"));
+        colHour.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getPeriod()));
+        colProduced.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getCommunityProduced()));
+        colUsed.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getCommunityUsed()));
+        colGrid.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getGridUsed()));
 
         startDatePicker.setValue(LocalDate.now().minusDays(7));
         endDatePicker.setValue(LocalDate.now());
@@ -83,6 +84,15 @@ public class HelloController {
             if (startDatePicker.getValue() == null || endDatePicker.getValue() == null) {
                 throw new IllegalStateException("Please choose both start and end dates.");
             }
+            var today = LocalDate.now();
+            if (startDatePicker.getValue().isAfter(today) || endDatePicker.getValue().isAfter(today)) {
+                throw new IllegalStateException("Das Datum liegt in der Zukunft.");
+            }
+            if (startDatePicker.getValue().isAfter(endDatePicker.getValue())) {
+                throw new IllegalStateException("Start date must not be after end date.");
+            }
+
+            tableHistorical.getItems().clear();
             var start = startDatePicker.getValue().atStartOfDay();
             var end = endDatePicker.getValue().atTime(23, 59, 59);
             var url = API_BASE + "/historical?start=" + start.format(FORMATTER) + "&end=" + end.format(FORMATTER);
@@ -96,16 +106,17 @@ public class HelloController {
             }
 
             List<HourlyUsage> usages = mapper.readValue(response.body(), new TypeReference<>() { });
-            var rows = FXCollections.<HourlyUsageRow>observableArrayList();
-            for (HourlyUsage usage : usages) {
-                rows.add(new HourlyUsageRow(
-                        usage.hour(),
-                        usage.communityProduced(),
-                        usage.communityUsed(),
-                        usage.gridUsed()
-                ));
+            if (usages.isEmpty()) {
+                throw new IllegalStateException("No historical data in the selected range.");
             }
-            tableHistorical.setItems(rows);
+
+            var aggregatedRow = new HourlyUsageRow(
+                    startDatePicker.getValue() + " to " + endDatePicker.getValue(),
+                    formatKwh(usages.stream().mapToDouble(HourlyUsage::communityProduced).sum()),
+                    formatKwh(usages.stream().mapToDouble(HourlyUsage::communityUsed).sum()),
+                    formatKwh(usages.stream().mapToDouble(HourlyUsage::gridUsed).sum())
+            );
+            tableHistorical.setItems(FXCollections.observableArrayList(aggregatedRow));
             labelStatus.setText("Historical data loaded successfully.");
         } catch (Exception e) {
             tableHistorical.getItems().clear();
@@ -116,5 +127,9 @@ public class HelloController {
 
     private String readError(String body) {
         return body == null || body.isBlank() ? "The API returned an error response." : body;
+    }
+
+    private String formatKwh(double value) {
+        return String.format(Locale.US, "%.3f", value);
     }
 }
