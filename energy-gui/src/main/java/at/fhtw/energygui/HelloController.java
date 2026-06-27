@@ -46,6 +46,7 @@ public class HelloController {
         colProduced.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getCommunityProduced()));
         colUsed.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getCommunityUsed()));
         colGrid.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getGridUsed()));
+        tableHistorical.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         startDatePicker.setValue(LocalDate.now().minusDays(7));
         endDatePicker.setValue(LocalDate.now());

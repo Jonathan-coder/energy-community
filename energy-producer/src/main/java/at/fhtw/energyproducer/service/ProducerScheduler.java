@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ProducerScheduler {
     private static final String WEATHER_API =
-            "https://api.open-meteo.com/v1/forecast?latitude=48.2082&longitude=16.3738&current=weather_code,cloud_cover&timezone=Europe%2FVienna";
+            "https://api.open-meteo.com/v1/forecast?latitude=48.2082&longitude=16.3738&current=weather_code,cloud_cover,is_day&timezone=Europe%2FVienna";
 
     private final RabbitTemplate rabbitTemplate;
     private final HttpClient httpClient = HttpClient.newBuilder().build();
@@ -63,6 +63,9 @@ public class ProducerScheduler {
     }
 
     double calculateProductionKwh(WeatherSnapshot weather) {
+        if (!weather.isDay) {
+            return 0.0;
+        }
         double base = 0.0025 + random.nextDouble() * 0.0045;
         double weatherFactor = 1.0;
         if (weather.weatherCode == 0) {
@@ -100,7 +103,8 @@ public class ProducerScheduler {
 
             int weatherCode = current.path("weather_code").asInt(3);
             int cloudCover = current.path("cloud_cover").asInt(50);
-            return Optional.of(new WeatherSnapshot(weatherCode, cloudCover));
+            boolean isDay = current.path("is_day").asInt(1) == 1;
+            return Optional.of(new WeatherSnapshot(weatherCode, cloudCover, isDay));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return Optional.empty();
@@ -110,7 +114,7 @@ public class ProducerScheduler {
     }
 
     private WeatherSnapshot defaultWeatherSnapshot() {
-        return new WeatherSnapshot(3, 50);
+        return new WeatherSnapshot(3, 50, true);
     }
 
     private void scheduleNextRun() {
@@ -134,6 +138,6 @@ public class ProducerScheduler {
         return Math.round(value * 1000.0) / 1000.0;
     }
 
-    record WeatherSnapshot(int weatherCode, int cloudCover) {
+    record WeatherSnapshot(int weatherCode, int cloudCover, boolean isDay) {
     }
 }
